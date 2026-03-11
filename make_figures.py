@@ -1,0 +1,70 @@
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+
+if not os.path.isdir("results"):
+    print("run run_experiments.py first")
+    exit(1)
+os.makedirs("figures", exist_ok=True)
+
+df = pd.read_csv("results/results.csv")
+main = df[~df["model"].str.contains("PCA")].head(4)
+x = np.arange(len(main))
+fig, (axa, axb) = plt.subplots(1, 2, figsize=(10, 4))
+axa.bar(x, main["MAE"], color="steelblue", label="MAE")
+axa.set_ylabel("MAE (eV)", fontsize=14)
+axa.set_xticks(x)
+axa.set_xticklabels(main["model"], rotation=15, ha="right", fontsize=14)
+axa.tick_params(axis="y", labelsize=14)
+axa.set_title("(a) MAE")
+axb.bar(x, main["R2"], color="coral", alpha=0.8, label="R²")
+axb.set_ylabel("R²", fontsize=14)
+axb.set_ylim(0, 1)
+axb.set_xticks(x)
+axb.set_xticklabels(main["model"], rotation=15, ha="right", fontsize=14)
+axb.tick_params(axis="y", labelsize=14)
+axb.set_title("(b) R²")
+handles = [mpatches.Patch(color="steelblue", label="MAE"), mpatches.Patch(color="coral", alpha=0.8, label="R²")]
+fig.legend(handles=handles, loc="upper center", ncol=2, bbox_to_anchor=(0.5, 1.02), fontsize=14)
+plt.tight_layout()
+plt.savefig("figures/fig1_model_comparison.png", dpi=300, bbox_inches="tight")
+plt.close()
+
+df = pd.read_csv("results/pca_variance.csv")
+plt.figure(figsize=(8, 5))
+plt.plot(df["component"], np.cumsum(df["variance_ratio"]))
+plt.axhline(0.9, color="gray", linestyle="--")
+plt.xlabel("Number of components", fontsize=14)
+plt.ylabel("Cumulative variance", fontsize=14)
+plt.ylim(0, 1.02)
+plt.tick_params(axis="both", labelsize=14)
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig("figures/fig2_pca_variance.png", dpi=300)
+plt.close()
+
+df = pd.read_csv("results/predictions.csv")
+plt.figure(figsize=(5, 5))
+plt.scatter(df["y_true"], df["y_pred"], alpha=0.4, s=15)
+m, M = df["y_true"].min(), df["y_true"].max()
+plt.plot([m, M], [m, M], "k--")
+plt.xlabel("Actual band gap (eV)", fontsize=14)
+plt.ylabel("Predicted band gap (eV)", fontsize=14)
+plt.axis("equal")
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig("figures/fig3_predicted_vs_actual.png", dpi=300)
+plt.close()
+
+df = pd.read_csv("results/lasso_importance.csv").head(15)
+labels = [s.replace("MagpieData ", "")[:35] for s in df["feature"]]
+plt.figure(figsize=(10, 6))
+plt.barh(range(len(df))[::-1], df["coef"])
+plt.yticks(range(len(df))[::-1], labels, fontsize=14)
+plt.xlabel("Lasso coefficient", fontsize=14)
+plt.tick_params(axis="x", labelsize=14)
+plt.tight_layout()
+plt.savefig("figures/fig4_lasso_coefs.png", dpi=300)
+plt.close()
