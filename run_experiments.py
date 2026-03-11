@@ -101,7 +101,6 @@ if __name__ == "__main__":
         mlp_maes.append(mean_absolute_error(y_test, pipe_seed.predict(X_test)))
     print("\nMLP MAE (5 seeds): {:.3f} ± {:.3f} eV".format(np.mean(mlp_maes), np.std(mlp_maes)))
 
-    # fit full PCA to find how many components explain 90% of variance
     scaler = StandardScaler()
     X_train_s = scaler.fit_transform(X_train)
     X_test_s = scaler.transform(X_test)
